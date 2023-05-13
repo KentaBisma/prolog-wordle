@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.letter-box {
+  @apply bg-slate-800 w-16 h-16 rounded;
+}
+.my-button {
+  @apply bg-slate-900 hover:bg-gray-800 active:opacity-60 shadow rounded;
+}
+.key {
+  @apply w-12 h-12 items-center align-middle text-xl my-button;
+}
+.key#key-backspace {
+  @apply w-16;
+}
+.keyboard-row {
+  @apply flex gap-2 justify-center;
+}
+#keyboard {
+  @apply flex flex-col gap-2;
+}

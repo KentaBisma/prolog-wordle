@@ -4,18 +4,22 @@
 wordle:-
     \+ has_session,
     open('words.txt',read,Str),
-    read_line(Str,L_word),
+    read_line(Str,L_answer),
     close(Str),
-    random_member(Answer,L_word),
+    random_member(Answer,L_answer),
+
+    open('potential-words.txt',read,Str1),
+    read_line(Str1,L_word),
+    close(Str1),
 
     teardown,
     gen_words(L_word),
     gen_existing_letters(Answer),
 
-    assertz(session(Answer, 5)), !.
+    assertz(session(Answer, 4)), !.
 
 wordle:-
-    quit.
+    quit, wordle.
 
 read_line(Stream,[]):-
     at_end_of_stream(Stream), !.
@@ -73,10 +77,10 @@ teardown:-
     retractall(green(_)),
     retractall(yellow(_)).    
 
-check_status(_, _, [green,green,green,green,green], message(win)):-
+check_status(Answer, _, [green,green,green,green,green], message(win, Answer)):-
     quit, !.
 
-check_status(_, 0, _, message(lose)):-
+check_status(Answer, 0, _, message(lose, Answer)):-
     quit, !.
 
 check_status(Answer, Tries, GuessResult, GuessResult):-
@@ -127,9 +131,7 @@ check_yellows([_|Gs], [_|Ss], Acc, FinalStatus):-
     check_yellows(Gs, Ss, NewAcc, FinalStatus), !.
 
 check_exist(Term):-
-    findall(_, Term, Bag),
-    length(Bag, Length),
-    Length > 0.
+    bagof(_, Term, _).
 
 check_guessed(Letter):-
     findall(_, green(Letter), GreenBag),

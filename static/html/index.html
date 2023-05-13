@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prolog × Wordle</title>
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.js"
+      integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/static/css/out.css" rel="stylesheet" />
+    <link href="/static/css/styles.css" rel="stylesheet" />
+    <style type="text/tailwindcss">
+      .letter-box {
+        @apply bg-slate-800 w-16 h-16 rounded text-2xl flex justify-center items-center;
+      }
+      .my-button {
+        @apply bg-slate-900 hover:bg-gray-800 active:opacity-60 shadow rounded;
+      }
+      .my-button:disabled {
+        @apply pointer-events-none opacity-40;
+      }
+      .key {
+        @apply w-12 h-12 items-center align-middle text-xl my-button;
+      }
+      .key#key-backspace {
+        @apply w-16;
+      }
+      .keyboard-row {
+        @apply flex gap-2 justify-center;
+      }
+      #keyboard {
+        @apply flex flex-col gap-2;
+      }
+      .letter-box.answer {
+        @apply bg-slate-900;
+      }
+      .letter-box.red {
+        @apply bg-red-600;
+      }
+      .letter-box.green {
+        @apply bg-green-600;
+      }
+      .letter-box.yellow {
+        @apply bg-yellow-600;
+      }
+      .letter-box.gray {
+        @apply bg-gray-600;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-gray-950 text-white w-full h-full transition-all"
+    style="font-family: 'Red Hat Display', sans-serif"
+  >
+    <div class="p-16 container h-screen flex flex-col m-auto">
+      <h1 class="text-3xl font-semibold">Prolog × Wordle</h1>
+      <div
+        class="flex-grow flex flex-col justify-center items-center gap-5"
+        id="content"
+      >
+        <div class="grid grid-cols-5 gap-2.5" id="guess-box">
+          <div class="letter-box answer" id="a00"></div>
+          <div class="letter-box answer" id="a01"></div>
+          <div class="letter-box answer" id="a02"></div>
+          <div class="letter-box answer" id="a03"></div>
+          <div class="letter-box answer" id="a04"></div>
+          <div class="letter-box" id="b00"></div>
+          <div class="letter-box" id="b01"></div>
+          <div class="letter-box" id="b02"></div>
+          <div class="letter-box" id="b03"></div>
+          <div class="letter-box" id="b04"></div>
+          <div class="letter-box" id="b10"></div>
+          <div class="letter-box" id="b11"></div>
+          <div class="letter-box" id="b12"></div>
+          <div class="letter-box" id="b13"></div>
+          <div class="letter-box" id="b14"></div>
+          <div class="letter-box" id="b20"></div>
+          <div class="letter-box" id="b21"></div>
+          <div class="letter-box" id="b22"></div>
+          <div class="letter-box" id="b23"></div>
+          <div class="letter-box" id="b24"></div>
+          <div class="letter-box" id="b30"></div>
+          <div class="letter-box" id="b31"></div>
+          <div class="letter-box" id="b32"></div>
+          <div class="letter-box" id="b33"></div>
+          <div class="letter-box" id="b34"></div>
+          <div class="letter-box" id="b40"></div>
+          <div class="letter-box" id="b41"></div>
+          <div class="letter-box" id="b42"></div>
+          <div class="letter-box" id="b43"></div>
+          <div class="letter-box" id="b44"></div>
+        </div>
+        <div class="relative gap-5 flex flex-col justify-center items-center">
+          <div
+            class="transition-all flex-grow h-full absolute w-full flex flex-col gap-3 justify-center items-center bg-gray-950/75 backdrop-blur z-[1] opacity-0 pointer-events-none"
+            id="gameover"
+          >
+            <span class="text-2xl" id="status"></span>
+            <button
+              class="text-xl px-4 py-2 my-button h-fit flex gap-2 align-middle items-center"
+              onclick="(() => location.reload())()"
+            >
+              Play again
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-rotate-ccw"
+              >
+                <path d="M3 2v6h6"></path>
+                <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="keyboard"></div>
+          <button
+            class="text-2xl px-6 py-4 my-button h-fit flex gap-3 align-middle items-center"
+            id="button-submit"
+            disabled="true"
+          >
+            Submit
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-corner-down-left"
+            >
+              <polyline points="9 10 4 15 9 20"></polyline>
+              <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    function backspace(c) {
+      return c === "⟵" ? "backspace" : c;
+    }
+
+    // Populate the keys
+    $(document).ready(() => {
+      ["QWERTYUIOP⟵", "ASDFGHJKL", "ZXCVBNM"].forEach((row) => {
+        let buttons = [...row]
+          .map(
+            (c) => `<button class="key" id="key-${backspace(c)}">${c}</button>`
+          )
+          .join("");
+        $("#keyboard").append(`<div class="keyboard-row">${buttons}</div>`);
+        [...row].forEach((c) => {
+          $(`#key-${backspace(c)}`).click(() => put(c));
+        });
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (
+        [..."abcdefghijklmnopqrstuvwxyz", "Backspace", "Enter"].includes(e.key)
+      ) {
+        switch (e.key) {
+          case "Backspace":
+            put("⟵");
+            break;
+          case "Enter":
+            if (!Boolean($("#button-submit").attr("disabled"))) validate();
+            break;
+          default:
+            if (!Boolean($(`#key-${e.key.toUpperCase()}`).attr("disabled")))
+              put(e.key.toUpperCase());
+        }
+      }
+    });
+
+    var currentWord = [];
+    var currentIndex = 0;
+
+    function put(c) {
+      if (c === "⟵") {
+        currentWord.pop();
+        redBoxes(false);
+      } else if (currentWord.length != 5) {
+        currentWord.push(c);
+      }
+      updateLetters();
+      if (currentWord.length == 5) {
+        $.ajax({
+          method: "get",
+          url: `/check/?word=${currentWord.join("").toLowerCase()}`,
+        }).then((res) => {
+          if (!res.wordExists) {
+            redBoxes(true);
+            $("#button-submit").attr("disabled", true);
+          } else {
+            redBoxes(false);
+            $("#button-submit").attr("disabled", false);
+          }
+        });
+      } else {
+        $("#button-submit").attr("disabled", true);
+      }
+    }
+
+    function validate() {
+      $.ajax({
+        method: "get",
+        url: `/validate/?word=${currentWord.join("").toLowerCase()}`,
+      }).then((res) => {
+        if (res.result) {
+          if (!res.result.startsWith) {
+            updateBoxes(res.result);
+          } else {
+            let unpacked = unpackMessage(res.result);
+            if (unpacked.status === "win") {
+              updateBoxes(["green", "green", "green", "green", "green"]);
+            } else {
+              redBoxes(true);
+            }
+            showAnswer(unpacked.answer);
+            updateStatus(unpacked.status);
+            freezeKeyboard();
+          }
+          currentWord = [];
+          currentIndex++;
+          if (currentIndex >= 5) currentIndex = 0;
+        }
+        $("#button-submit").attr("disabled", true);
+      });
+    }
+
+    $("#button-submit").click(validate);
+
+    function freezeKeyboard() {
+      $(".key").add("#button-submit").attr("disabled", true);
+    }
+
+    function unpackMessage(message) {
+      [status, answer] = [...message.slice(8, -1).split(",")].map((c) =>
+        c.trim()
+      );
+      return { status, answer };
+    }
+
+    function updateLetters() {
+      for (let i = 0; i < 5; i++) {
+        $(`#b${currentIndex}${i}`).html(
+          i < currentWord.length ? currentWord[i] : ""
+        );
+      }
+    }
+
+    function showAnswer(answer) {
+      for (let i = 0; i < 5; i++) {
+        $(`#a0${i}`).html(answer.charAt(i).toUpperCase());
+      }
+    }
+
+    function updateStatus(status) {
+      $("#gameover").removeClass(["opacity-0", "pointer-events-none"]);
+      $("#status").html(`You ${status}!`);
+    }
+
+    function redBoxes(add) {
+      for (let i = 0; i < 5; i++) {
+        let boxes = $(`#b${currentIndex}${i}`);
+        if (add) {
+          boxes.addClass("red");
+        } else {
+          boxes.removeClass("red");
+        }
+      }
+    }
+
+    function updateBoxes(arr) {
+      for (let i = 0; i < 5; i++) {
+        $(`#b${currentIndex}${i}`).addClass(arr[i]);
+      }
+    }
+  </script>
+</html>

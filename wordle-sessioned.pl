@@ -1,6 +1,8 @@
 :- dynamic exist_letter/1, green/1, yellow/1, word/1.
+:- dynamic session/2.
 
 wordle:-
+    \+ has_session,
     open('words.txt',read,Str),
     read_line(Str,L_word),
     close(Str),
@@ -10,19 +12,44 @@ wordle:-
     gen_words(L_word),
     gen_existing_letters(Answer),
 
-    write("Wordle started!"), nl,
+    assertz(session(Answer, 5)), !.
 
-    process_guess(Guess),
-    game_loop(Guess, Answer, 4).
+wordle:-
+    quit.
 
-process_guess(Guess):-
-    write("Guess: "), nl,
-    read(Guess),
-    check_exist(word(Guess)), !.
+read_line(Stream,[]):-
+    at_end_of_stream(Stream), !.
 
-process_guess(Guess):- 
-    write("That word does not exist!"), nl,
-    process_guess(Guess).
+read_line(Stream,[X|L]):-
+    read(Stream,X),
+    read_line(Stream,L).
+
+has_session:-
+    has_session(_,_).
+
+has_session(Answer, Tries):-
+    bagof((X, Y), session(X,Y), [(Answer, Tries)|[]]).
+
+update_session(Answer, Tries):-
+    retract(session(_,_)),
+    assertz(session(Answer, Tries)).
+
+quit:-
+    has_session,
+    teardown,
+    retract(session(_,_)).
+
+guess(Guess, GuessResult):-
+    has_session(Answer, Tries),
+    check_exist(word(Guess)),
+    atom_chars(Answer,L_answer),
+    atom_chars(Guess,L_guess),
+    check_word(L_guess, L_answer, [], Status),
+    check_yellows(L_guess, Status, [], FinalStatus),
+    check_status(Answer, Tries, FinalStatus, GuessResult),
+    !.
+
+guess(_, message(nonexist)).
 
 gen_words([]).
 
@@ -40,43 +67,23 @@ gen_existing_letters_([H|Tail]):-
     assertz(exist_letter(H)),
     gen_existing_letters_(Tail).
 
-game_loop(_, Answer, 0):-
-    teardown,
-    concat("You lose! The answer is ", Answer, Str),
-    write(Str), !.
-
-game_loop(Guess, Answer, Tries):-
-    atom_chars(Answer,L_answer),
-    atom_chars(Guess,L_guess),
-    check_word(L_guess, L_answer, [], Status),
-    check_yellows(L_guess, Status, [], FinalStatus),
-    write(FinalStatus), nl,
-    check_status(Tries, Answer, FinalStatus).
-
 teardown:-
     retractall(word(_)),
     retractall(exist_letter(_)),
     retractall(green(_)),
     retractall(yellow(_)).    
 
-check_status(_, Answer, [green,green,green,green,green]):-
-    teardown,
-    concat("You win! The answer is ", Answer, Str),
-    write(Str), !.
+check_status(_, _, [green,green,green,green,green], message(win)):-
+    quit, !.
 
-check_status(Tries, Answer, _):-
+check_status(_, 0, _, message(lose)):-
+    quit, !.
+
+check_status(Answer, Tries, GuessResult, GuessResult):-
     retractall(green(_)),
     retractall(yellow(_)),
-    process_guess(Guess),
     Tries_ is Tries-1,
-    game_loop(Guess, Answer, Tries_).
-
-read_line(Stream,[]):-
-    at_end_of_stream(Stream), !.
-
-read_line(Stream,[X|L]):-
-    read(Stream,X),
-    read_line(Stream,L).
+    update_session(Answer, Tries_).
 
 check_word([], [], Status, Status).
 

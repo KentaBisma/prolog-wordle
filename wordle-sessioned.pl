@@ -219,7 +219,7 @@ subgoal_word_with_no_letter(Word, ToLookFor):-
     probable_valid_word(Word),
     \+ sub_atom(Word, _, _, _, ToLookFor).
 
-get_all_probable_solution(L):-
+get_all_probable_solutions(L):-
     findall(X, probable_solution(X), L).
 
 get_all_probable_valid_words(L):-

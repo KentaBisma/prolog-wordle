@@ -48,6 +48,25 @@
       .letter-box.gray_ {
         @apply bg-gray-600;
       }
+      #valid-words::-webkit-scrollbar,
+      #solutions::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      #valid-words::-webkit-scrollbar-track,
+      #solutions::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
+
+      #valid-words::-webkit-scrollbar-thumb,
+      #solutions::-webkit-scrollbar-thumb {
+        @apply bg-slate-500 rounded-full;
+      }
+
+      #valid-words::-webkit-scrollbar-corner,
+      #solutions::-webkit-scrollbar-corner {
+        display: hidden;
+      }
     </style>
   </head>
 
@@ -55,99 +74,216 @@
     class="bg-gray-950 text-white w-full h-full transition-all"
     style="font-family: 'Red Hat Display', sans-serif"
   >
-    <div class="p-16 container h-screen flex flex-col m-auto">
-      <h1 class="text-3xl font-semibold">Prolog × Wordle</h1>
+    <div
+      class="absolute w-full h-full bg-slate-950/20 backdrop-blur-md z-[1] flex hidden"
+      id="modal"
+    >
       <div
-        class="flex-grow flex flex-col justify-center items-center gap-5"
-        id="content"
+        class="max-w-xl bg-gray-900 rounded p-4 m-auto drop-shadow-xl flex flex-col gap-4"
       >
-        <div class="grid grid-cols-5 gap-2.5" id="guess-box">
-          <div class="letter-box answer" id="a00"></div>
-          <div class="letter-box answer" id="a01"></div>
-          <div class="letter-box answer" id="a02"></div>
-          <div class="letter-box answer" id="a03"></div>
-          <div class="letter-box answer" id="a04"></div>
-          <div class="letter-box" id="b00"></div>
-          <div class="letter-box" id="b01"></div>
-          <div class="letter-box" id="b02"></div>
-          <div class="letter-box" id="b03"></div>
-          <div class="letter-box" id="b04"></div>
-          <div class="letter-box" id="b10"></div>
-          <div class="letter-box" id="b11"></div>
-          <div class="letter-box" id="b12"></div>
-          <div class="letter-box" id="b13"></div>
-          <div class="letter-box" id="b14"></div>
-          <div class="letter-box" id="b20"></div>
-          <div class="letter-box" id="b21"></div>
-          <div class="letter-box" id="b22"></div>
-          <div class="letter-box" id="b23"></div>
-          <div class="letter-box" id="b24"></div>
-          <div class="letter-box" id="b30"></div>
-          <div class="letter-box" id="b31"></div>
-          <div class="letter-box" id="b32"></div>
-          <div class="letter-box" id="b33"></div>
-          <div class="letter-box" id="b34"></div>
-          <div class="letter-box" id="b40"></div>
-          <div class="letter-box" id="b41"></div>
-          <div class="letter-box" id="b42"></div>
-          <div class="letter-box" id="b43"></div>
-          <div class="letter-box" id="b44"></div>
-        </div>
-        <div class="relative gap-5 flex flex-col justify-center items-center">
-          <div
-            class="transition-all flex-grow h-full absolute w-full flex flex-col gap-3 justify-center items-center bg-gray-950/75 backdrop-blur z-[1] opacity-0 pointer-events-none"
-            id="gameover"
-          >
-            <span class="text-2xl" id="status"></span>
-            <button
-              class="text-xl px-4 py-2 my-button h-fit flex gap-2 align-middle items-center"
-              onclick="(() => location.reload())()"
-            >
-              Play again
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-rotate-ccw"
-              >
-                <path d="M3 2v6h6"></path>
-                <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
-              </svg>
-            </button>
-          </div>
-          <div id="keyboard"></div>
-          <button
-            class="text-2xl px-6 py-4 my-button h-fit flex gap-3 align-middle items-center"
-            id="button-submit"
-            disabled="true"
-          >
-            Submit
+        <div class="flex">
+          <div class="grow text-xl" id="modal-title"></div>
+          <button onclick="toggleModal(false)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="lucide lucide-corner-down-left"
+              class="lucide lucide-x"
             >
-              <polyline points="9 10 4 15 9 20"></polyline>
-              <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+              <line x1="18" x2="6" y1="6" y2="18"></line>
+              <line x1="6" x2="18" y1="6" y2="18"></line>
             </svg>
           </button>
+        </div>
+        <div class="py-2" id="modal-content"></div>
+      </div>
+    </div>
+    <div class="p-16 container h-screen flex flex-col m-auto gap-4">
+      <h1 class="text-3xl font-semibold">Prolog × Wordle</h1>
+      <div class="flex h-full w-full gap-16">
+        <div class="flex w-32 flex-col gap-2 shrink-0">
+          <button class="text-left py-2" onclick="toggleHowToPlay()">
+            How to play?
+          </button>
+          <button
+            class="text-left py-2"
+            onclick="toggleHints()"
+            id="hint-button"
+          >
+            Hints
+          </button>
+          <button class="text-left py-2" onclick="toggleCredits()">
+            Credits
+          </button>
+        </div>
+        <div
+          class="flex-grow flex flex-col justify-center items-center gap-5"
+          id="content"
+        >
+          <div class="grid grid-cols-5 gap-2.5" id="guess-box">
+            <div class="letter-box answer" id="a00"></div>
+            <div class="letter-box answer" id="a01"></div>
+            <div class="letter-box answer" id="a02"></div>
+            <div class="letter-box answer" id="a03"></div>
+            <div class="letter-box answer" id="a04"></div>
+            <div class="letter-box" id="b00"></div>
+            <div class="letter-box" id="b01"></div>
+            <div class="letter-box" id="b02"></div>
+            <div class="letter-box" id="b03"></div>
+            <div class="letter-box" id="b04"></div>
+            <div class="letter-box" id="b10"></div>
+            <div class="letter-box" id="b11"></div>
+            <div class="letter-box" id="b12"></div>
+            <div class="letter-box" id="b13"></div>
+            <div class="letter-box" id="b14"></div>
+            <div class="letter-box" id="b20"></div>
+            <div class="letter-box" id="b21"></div>
+            <div class="letter-box" id="b22"></div>
+            <div class="letter-box" id="b23"></div>
+            <div class="letter-box" id="b24"></div>
+            <div class="letter-box" id="b30"></div>
+            <div class="letter-box" id="b31"></div>
+            <div class="letter-box" id="b32"></div>
+            <div class="letter-box" id="b33"></div>
+            <div class="letter-box" id="b34"></div>
+            <div class="letter-box" id="b40"></div>
+            <div class="letter-box" id="b41"></div>
+            <div class="letter-box" id="b42"></div>
+            <div class="letter-box" id="b43"></div>
+            <div class="letter-box" id="b44"></div>
+          </div>
+          <div class="relative gap-5 flex flex-col justify-center items-center">
+            <div
+              class="transition-all flex-grow h-full absolute w-full flex flex-col gap-3 justify-center items-center bg-gray-950/75 backdrop-blur z-[1] opacity-0 pointer-events-none"
+              id="gameover"
+            >
+              <span class="text-2xl" id="status"></span>
+              <button
+                class="text-xl px-4 py-2 my-button h-fit flex gap-2 align-middle items-center"
+                onclick="(() => location.reload())()"
+              >
+                Play again
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-rotate-ccw"
+                >
+                  <path d="M3 2v6h6"></path>
+                  <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
+                </svg>
+              </button>
+            </div>
+            <div id="keyboard"></div>
+            <button
+              class="text-2xl px-6 py-4 my-button h-fit flex gap-3 align-middle items-center"
+              id="button-submit"
+              disabled="true"
+            >
+              Submit
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-corner-down-left"
+              >
+                <polyline points="9 10 4 15 9 20"></polyline>
+                <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="w-0 overflow-hidden shrink flex flex-col gap-4 transition-all"
+          id="hints"
+        >
+          <h2 class="text-2xl">Hints</h2>
+          <div class="rounded bg-gray-900 p-4 flex flex-col gap-2">
+            <h2>All Valid Words</h2>
+            <div
+              class="font-mono font-light text-gray-400 max-h-64 overflow-y-scroll"
+              id="valid-words"
+            >
+              Try to make a guess first!
+            </div>
+          </div>
+          <div class="rounded bg-gray-900 p-4 flex flex-col gap-2">
+            <h2>All Possible Solutions</h2>
+            <div
+              class="font-mono font-light text-gray-400 max-h-64 overflow-y-scroll"
+              id="solutions"
+            >
+              Try to make a guess first!
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </body>
+  <script>
+    function toggleHints() {
+      let open = $("#hints")
+        .toggleClass(["w-0", "overflow-hidden", "w-full"])
+        .hasClass("w-full");
+      if (open) {
+        $(".word").removeClass(["hidden"]);
+      } else {
+        $(".word").addClass(["hidden"]);
+      }
+    }
+
+    function toggleModal(open) {
+      if (open) {
+        $("#modal").removeClass(["hidden"]);
+      } else {
+        $("#modal").addClass(["hidden"]);
+      }
+    }
+
+    function toggleHowToPlay() {
+      toggleModal(true);
+      $("#modal-title").html("How to play?");
+      $("#modal-content").html(`
+      Guess the Wordle in 5 tries. </br>
+      </br>
+      Each guess must be a valid 5-letter word.
+      The color of the tiles will change to show how close your guess was to the word.</br>
+      </br>
+      🟩 means the letter is in the word and is in the right spot.</br>
+      🟨 means the letter is in the word but is not in the right spot.</br>
+      ⬛ means the letter is not in the word.</br>
+      `);
+    }
+
+    function toggleCredits() {
+      toggleModal(true);
+      $("#modal-title").html("Credits");
+      $("#modal-content").html(`
+      The game is based on the game 'Wordle' by Josh Wardle. </br>
+      </br>
+      The words used are collected from <a class="text-gray-400" href="https://dagshub.com/arjvik/wordle-wordlist">this</a> database. </br></br>
+      <a class="text-gray-400" href="https://github.com/KentaBisma/prolog-wordle">Sourcecode</a> </br>
+      `);
+    }
+  </script>
   <script>
     function backspace(c) {
       return c === "⟵" ? "backspace" : c;
@@ -167,6 +303,14 @@
         });
       });
     });
+
+    document
+      .getElementById("hint-button")
+      .addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // Prevent the default button click behavior
+        }
+      });
 
     document.addEventListener("keydown", (e) => {
       if (
@@ -223,6 +367,29 @@
         if (res.result) {
           if (!res.result.startsWith) {
             updateBoxes(res.result);
+            $.ajax({
+              method: "get",
+              url: `/hints`,
+            }).then((res1) => {
+              let open = $("#hints")
+                .hasClass("w-full");
+              if (res1.validWords) {
+                let spans = "";
+                for (let w of res1.validWords) {
+                  spans += `<span class="word ${open ? "" : "hidden"}">${w}</span>`;
+                }
+                $("#valid-words").html(spans);
+                $("#valid-words").addClass("grid grid-cols-3");
+              }
+              if (res1.solutions) {
+                let spans = "";
+                for (let w of res1.solutions) {
+                  spans += `<span class="word ${open ? "" : "hidden"}">${w}</span>`;
+                }
+                $("#solutions").html(spans);
+                $("#solutions").addClass("grid grid-cols-3");
+              }
+            });
           } else {
             let unpacked = unpackMessage(res.result);
             if (unpacked.status === "win") {

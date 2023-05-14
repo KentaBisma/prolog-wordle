@@ -27,9 +27,25 @@ def read_root():
 
 @app.get("/check")
 def check(word):
-    b = len([*prolog.query(f'check_exist(word({word}))')]) != 0
-    return {"wordExists": b}
+    if has_session():
+        b = len([*prolog.query(f'check_exist(word({word}))')]) != 0
+        return {"wordExists": b}
+    else: return {"error": "There are no valid sessions"}
 
 @app.get("/validate")
 def validate(word):
-    return {"result": [*prolog.query(f'guess({word}, R)')][0]['R']}
+    if has_session(): return {"result": [*prolog.query(f'guess({word}, R)')][0]['R']}
+    else: return {"error": "There are no valid sessions"}
+
+
+@app.get("/hints")
+def hints():
+    if has_session():
+        return {
+            "validWords": [*prolog.query('get_all_probable_valid_words(R)')][0]['R'],
+            "solutions": [*prolog.query('get_all_probable_solutions(R)')][0]['R']
+        }
+    else: return {"error": "There are no valid sessions"}
+
+def has_session():
+    return len([*prolog.query('has_session')]) != 0

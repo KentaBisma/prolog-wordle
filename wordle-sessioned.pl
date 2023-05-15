@@ -25,7 +25,7 @@ wordle:-
     quit, wordle.
 
 read_line(Stream,[]):-
-    at_end_of_stream(Stream), !.
+    at_end_of_stream(Stream).
 
 read_line(Stream,[X|L]):-
     read(Stream,X),
@@ -75,7 +75,7 @@ gen_existing_letters(Answer):-
     atom_chars(Answer,L_answer),
     gen_existing_letters_(L_answer).
 
-gen_existing_letters_([]):- !.
+gen_existing_letters_([]).
 
 gen_existing_letters_([H|Tail]):-
     assertz(exist_letter(H)),
@@ -89,11 +89,9 @@ teardown:-
     retractall(green(_)),
     retractall(yellow(_)).    
 
-check_status(Answer, _, [green,green,green,green,green], message(win, Answer)):-
-    quit, !.
+check_status(Answer, _, [green,green,green,green,green], message(win, Answer)):- quit, !.
 
-check_status(Answer, 0, _, message(lose, Answer)):-
-    quit, !.
+check_status(Answer, 0, _, message(lose, Answer)):- quit, !.
 
 check_status(Answer, Tries, GuessResult, GuessResult):-
     retractall(green(_)),
@@ -163,25 +161,25 @@ teardown_hint_knowledge:-
 
 gen_hint_knowledge:-
     findall(X, word(X), Xs),
-    gen_hint_valid_words(Xs), !,
+    gen_hint_valid_words(Xs),
     findall(Y, answer(Y), Ys),
-    gen_hint_solutions(Ys), !.
+    gen_hint_solutions(Ys).
 
-gen_hint_valid_words([]):- !.
+gen_hint_valid_words([]).
 
 gen_hint_valid_words([X|Xs]):-
     assertz(probable_valid_word(X)),
     gen_hint_valid_words(Xs).
 
-gen_hint_solutions([]):- !.
+gen_hint_solutions([]).
 
 gen_hint_solutions([X|Xs]):-
     assertz(probable_solution(X)),
     gen_hint_solutions(Xs).
 
-update_hint_knowledge([], []):- !.
+update_hint_knowledge([], []).
 
-update_hint_knowledge([G1, G2, G3, G4, G5|[]], [S1, S2, S3, S4, S5|[]]):-
+update_hint_knowledge([G1, G2, G3, G4, G5], [S1, S2, S3, S4, S5]):-
     process_hint_info(G1,S1,1),
     process_hint_info(G2,S2,2),
     process_hint_info(G3,S3,3),

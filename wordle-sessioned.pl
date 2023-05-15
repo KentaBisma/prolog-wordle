@@ -188,17 +188,27 @@ update_hint_knowledge([G1, G2, G3, G4, G5|[]], [S1, S2, S3, S4, S5|[]]):-
     process_hint_info(G4,S4,4),
     process_hint_info(G5,S5,5).
 
-process_hint_info(_, S, _):-
-    S = gray_, !.
-
 process_hint_info(G, S, _):-
+    S = gray_,
+    findall(_, green(G), L_g),
+    findall(_, yellow(G), L_y),
+    length(L_g, Len_g),
+    length(L_y, Len_y),
+    Len is Len_g + Len_y,
+    findall_set(X, subgoal_word_with_letter_more_than(X, G, Len), L_2),
+    retract_improbable(L_2), !.
+
+process_hint_info(G, S, Idx):-
     S = yellow,
     findall_set(X, subgoal_word_with_no_letter(X, G), L),
+    findall_set(Y, subgoal_word_with_letter_at(Y, G, Idx), L_2),
+    retract_improbable(L_2),
     retract_improbable(L), !.
 
 process_hint_info(G, S, Idx):-
     S = green,
-    findall_set(X, subgoal_word_with_no_letter_at(X, G, Idx), L),
+    dif(NotG, G),
+    findall_set(X, subgoal_word_with_letter_at(X, NotG, Idx), L),
     retract_improbable(L), !.
 
 process_hint_info(G, S, _):-
@@ -206,10 +216,16 @@ process_hint_info(G, S, _):-
     findall_set(X, subgoal_word_with_letter(X, G), L),
     retract_improbable(L), !.
 
-subgoal_word_with_no_letter_at(Word, ToLookFor, Idx):-
+subgoal_word_with_letter_more_than(Word, Letter, Num):-
+    probable_valid_word(Word),
+    findall(_, sub_atom(Word, _, _, _, Letter), L),
+    length(L, Len),
+    Len > Num.
+
+subgoal_word_with_letter_at(Word, ToLookFor, Idx):-
     probable_valid_word(Word),
     Idx_ is Idx - 1,
-    \+ sub_atom(Word, Idx_, 1, _, ToLookFor).
+    sub_atom(Word, Idx_, 1, _, ToLookFor).
 
 subgoal_word_with_letter(Word, ToLookFor):-
     probable_valid_word(Word),

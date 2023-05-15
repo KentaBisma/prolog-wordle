@@ -65,6 +65,8 @@
 
       #valid-words::-webkit-scrollbar-corner,
       #solutions::-webkit-scrollbar-corner {
+        width: 0;
+        height: 0;
         display: hidden;
       }
     </style>
@@ -75,7 +77,7 @@
     style="font-family: 'Red Hat Display', sans-serif"
   >
     <div
-      class="absolute w-full h-full bg-slate-950/20 backdrop-blur-md z-[1] flex hidden"
+      class="absolute w-full h-full bg-slate-950/20 backdrop-blur-md z-[2] flex hidden"
       id="modal"
     >
       <div
@@ -371,23 +373,26 @@
               method: "get",
               url: `/hints`,
             }).then((res1) => {
-              let open = $("#hints")
-                .hasClass("w-full");
+              let open = $("#hints").hasClass("w-full");
               if (res1.validWords) {
                 let spans = "";
                 for (let w of res1.validWords) {
-                  spans += `<span class="word ${open ? "" : "hidden"}">${w}</span>`;
+                  spans += `<span class="word ${
+                    open ? "" : "hidden"
+                  }">${w.toUpperCase()}</span>`;
                 }
                 $("#valid-words").html(spans);
-                $("#valid-words").addClass("grid grid-cols-3");
+                $("#valid-words").addClass("grid grid-cols-5");
               }
               if (res1.solutions) {
                 let spans = "";
                 for (let w of res1.solutions) {
-                  spans += `<span class="word ${open ? "" : "hidden"}">${w}</span>`;
+                  spans += `<span class="word ${
+                    open ? "" : "hidden"
+                  }">${w.toUpperCase()}</span>`;
                 }
                 $("#solutions").html(spans);
-                $("#solutions").addClass("grid grid-cols-3");
+                $("#solutions").addClass("grid grid-cols-5");
               }
             });
           } else {

@@ -2,11 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 .letter-box {
-  @apply bg-slate-800 w-16 h-16 rounded;
+  @apply bg-slate-800 w-16 h-16 rounded text-2xl flex justify-center items-center;
 }
 .my-button {
   @apply bg-slate-900 hover:bg-gray-800 active:opacity-60 shadow rounded;
+}
+.my-button:disabled {
+  @apply pointer-events-none opacity-40;
 }
 .key {
   @apply w-12 h-12 items-center align-middle text-xl my-button;
@@ -19,4 +24,41 @@
 }
 #keyboard {
   @apply flex flex-col gap-2;
+}
+.letter-box.answer {
+  @apply bg-slate-900;
+}
+.letter-box.red {
+  @apply bg-red-600;
+}
+.letter-box.green {
+  @apply bg-emerald-600;
+}
+.letter-box.yellow {
+  @apply bg-amber-400;
+}
+.letter-box.gray,
+.letter-box.gray_ {
+  @apply bg-gray-600;
+}
+#valid-words::-webkit-scrollbar,
+#solutions::-webkit-scrollbar {
+  width: 4px;
+}
+
+#valid-words::-webkit-scrollbar-track,
+#solutions::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+#valid-words::-webkit-scrollbar-thumb,
+#solutions::-webkit-scrollbar-thumb {
+  @apply bg-slate-500 rounded-full;
+}
+
+#valid-words::-webkit-scrollbar-corner,
+#solutions::-webkit-scrollbar-corner {
+  width: 0;
+  height: 0;
+  display: hidden;
 }

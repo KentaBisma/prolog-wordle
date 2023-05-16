@@ -35,7 +35,7 @@ has_session:-
     has_session(_,_).
 
 has_session(Answer, Tries):-
-    bagof((X, Y), session(X,Y), [(Answer, Tries)|[]]).
+    bagof((X, Y), session(X,Y), [(Answer, Tries)]).
 
 update_session(Answer, Tries):-
     retract(session(_,_)),
@@ -177,8 +177,6 @@ gen_hint_solutions([X|Xs]):-
     assertz(probable_solution(X)),
     gen_hint_solutions(Xs).
 
-update_hint_knowledge([], []).
-
 update_hint_knowledge([G1, G2, G3, G4, G5], [S1, S2, S3, S4, S5]):-
     process_hint_info(G1,S1,1),
     process_hint_info(G2,S2,2),
@@ -212,7 +210,7 @@ process_hint_info(G, S, Idx):-
 process_hint_info(G, S, _):-
     S = gray,
     findall_set(X, subgoal_word_with_letter(X, G), L),
-    retract_improbable(L), !.
+    retract_improbable(L).
 
 subgoal_word_with_letter_more_than(Word, Letter, Num):-
     probable_valid_word(Word),
